@@ -1665,22 +1665,6 @@ void scriptclass::run(void)
                     map.revealmap = false;
                 }
             }
-            else if (words[0] == "setdimension")
-            {
-                obj.setdimension(
-                    ss_toi(words[1]),
-                    ss_toi(words[2]),
-                    ss_toi(words[3]),
-                    ss_toi(words[4]),
-                    ss_toi(words[5])
-                );
-            }
-            else if (words[0] == "removedimension")
-            {
-            obj.removedimension(
-                ss_toi(words[1])
-            );
-            }
             else if (words[0] == "createrescuedcrew")
             {
                 //special for final level cutscene

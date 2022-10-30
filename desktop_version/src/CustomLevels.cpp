@@ -11,7 +11,6 @@
 
 #include "Constants.h"
 #include "Editor.h"
-#include "Entity.h"
 #include "Enums.h"
 #include "FileSystemUtils.h"
 #include "Game.h"
@@ -1451,18 +1450,8 @@ bool customlevelclass::save(const std::string& _path)
 
 void customlevelclass::generatecustomminimap(void)
 {
-    // dimension handling
-    int id = 0;
-    if (obj.dimension[id].isvalid == true)
-    {
-        map.customwidth = obj.dimension[id].dimw;
-        map.customheight = obj.dimension[id].dimh;
-    }
-    else
-    {
-        map.customwidth = mapwidth;
-        map.customheight = mapheight;
-    }
+    map.customwidth = mapwidth;
+    map.customheight = mapheight;
 
     map.customzoom=1;
     if(map.customwidth<=10 && map.customheight<=10) map.customzoom=2;

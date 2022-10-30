@@ -182,16 +182,6 @@ public:
     bool flags[100];
     bool collect[100];
     bool customcollect[100];
-    struct dimensionstruct {
-        bool isvalid;
-        int dimx;
-        int dimy;
-        int dimw;
-        int dimh;
-    };
-    struct dimensionstruct dimension[400];
-    void setdimension(int id, int dimx, int dimy, int dimw, int dimh);
-    void removedimension(int id);
 
     int platformtile;
     bool vertplatforms, horplatforms;
