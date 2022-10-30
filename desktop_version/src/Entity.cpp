@@ -87,6 +87,8 @@ void entityclass::init(void)
     SDL_memset(customcollect, false, sizeof(customcollect));
 
     k = 0;
+
+    // SDL_memset(dimension, 0, sizeof(dimension));
 }
 
 void entityclass::resetallflags(void)
@@ -4896,4 +4898,14 @@ void entityclass::stuckprevention(int t)
             entities[t].yp += 3;
         }
     }
+}
+
+void entityclass::setdimension(int id, int dimx, int dimy, int dimw, int dimh)
+{
+    dimension[id] = { true, dimx, dimy, dimw, dimh };
+}
+
+void entityclass::removedimension(int id)
+{
+    dimension[id] = { false, 0, 0, 0, 0 };
 }

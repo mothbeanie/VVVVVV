@@ -83,6 +83,8 @@ mapclass::mapclass(void)
 
     roomname = "";
     hiddenname = "";
+
+    revealmap = true;
 }
 
 //Areamap starts at 100,100 and extends 20x20
@@ -134,6 +136,12 @@ void mapclass::resetmap(void)
 {
     //clear the explored area of the map
     SDL_memset(explored, 0, sizeof(explored));
+}
+
+void mapclass::fullmap(void)
+{
+    //mark the whole map as explored
+    SDL_memset(explored, 1, sizeof(explored));
 }
 
 void mapclass::resetnames(void)
@@ -1337,12 +1345,15 @@ static void copy_short_to_int(int* dest, const short* src, const size_t size)
 void mapclass::loadlevel(int rx, int ry)
 {
     int t;
-    if (!finalmode)
+    if (revealmap)
     {
-        setexplored(rx - 100, ry - 100, true);
-        if (rx == 109 && !custommode)
+        if (!finalmode)
         {
-            exploretower();
+            setexplored(rx - 100, ry - 100, true);
+            if (rx == 109 && !custommode)
+            {
+                exploretower();
+            }
         }
     }
 

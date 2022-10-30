@@ -1647,6 +1647,40 @@ void scriptclass::run(void)
                 obj.customactivitypositionx = ss_toi(words[1]);
                 obj.customactivitypositiony = ss_toi(words[2]);
             }
+            else if (words[0] == "mapexplored")
+            {
+                if (words[1] == "none") {
+                    map.resetmap();
+                }
+                else if (words[1] == "all") {
+                    map.fullmap();
+                }
+            }
+            else if (words[0] == "mapreveal")
+            {
+                if (words[1] == "on") {
+                    map.revealmap = true;
+                }
+                else if (words[1] == "off") {
+                    map.revealmap = false;
+                }
+            }
+            else if (words[0] == "setdimension")
+            {
+                obj.setdimension(
+                    ss_toi(words[1]),
+                    ss_toi(words[2]),
+                    ss_toi(words[3]),
+                    ss_toi(words[4]),
+                    ss_toi(words[5])
+                );
+            }
+            else if (words[0] == "removedimension")
+            {
+            obj.removedimension(
+                ss_toi(words[1])
+            );
+            }
             else if (words[0] == "createrescuedcrew")
             {
                 //special for final level cutscene

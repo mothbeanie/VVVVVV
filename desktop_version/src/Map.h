@@ -31,6 +31,8 @@ public:
 
     void resetmap(void);
 
+    void fullmap(void);
+
     void resetnames(void);
 
     void transformname(int t);
@@ -108,6 +110,8 @@ public:
 
     const char* roomname;
     const char* hiddenname;
+
+    bool revealmap;
 
     //Special tower stuff
     bool towermode;

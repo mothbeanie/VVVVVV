@@ -2100,6 +2100,7 @@ void maprender(void)
     case 0:
         if (map.finalmode || (map.custommode&&!map.customshowmm))
         {
+            
             //draw the map image
             graphics.drawpixeltextbox(35, 16, 250, 190, 65, 185, 207);
             graphics.drawimage(1, 40, 21, false);
@@ -2115,6 +2116,16 @@ void maprender(void)
 #ifndef NO_CUSTOM_LEVELS
         else if(map.custommode)
         {
+          int initx = 0;
+          int inity = 0;
+          //dimension handling
+          int id = 0;
+          if (obj.dimension[id].isvalid == true)
+          {
+            initx = obj.dimension[id].dimx;
+            inity = obj.dimension[id].dimy;
+          }
+
           //draw the map image
           graphics.drawpixeltextbox(35+map.custommmxoff, 16+map.custommmyoff, map.custommmxsize+10, map.custommmysize+10, 65, 185, 207);
           if (graphics.minimap_mounted)
@@ -2128,8 +2139,8 @@ void maprender(void)
 
           //Black out here
           if(map.customzoom==4){
-            for (int j = 0; j < map.customheight; j++){
-              for (int i = 0; i < map.customwidth; i++){
+            for (int j = inity; j < map.customheight; j++){
+              for (int i = initx; i < map.customwidth; i++){
                 if(!map.isexplored(i, j)){
                   //Draw the fog of war on the map
                   graphics.drawimage(2, map.custommmxoff+40 + (i * 48), map.custommmyoff+21 + (j * 36), false);
@@ -2155,8 +2166,8 @@ void maprender(void)
               }
             }
           }else if(map.customzoom==2){
-            for (int j = 0; j < map.customheight; j++){
-              for (int i = 0; i < map.customwidth; i++){
+            for (int j = inity; j < map.customheight; j++){
+              for (int i = initx; i < map.customwidth; i++){
                 if(!map.isexplored(i, j)){
                   //Draw the fog of war on the map
                   graphics.drawimage(2, map.custommmxoff+40 + (i * 24), map.custommmyoff+21 + (j * 18), false);
@@ -2167,8 +2178,8 @@ void maprender(void)
               }
             }
           }else{
-            for (int j = 0; j < map.customheight; j++){
-              for (int i = 0; i < map.customwidth; i++){
+            for (int j = inity; j < map.customheight; j++){
+              for (int i = initx; i < map.customwidth; i++){
                 if(!map.isexplored(i, j)){
                   //Draw the fog of war on the map
                   graphics.drawimage(2, map.custommmxoff+40 + (i * 12), map.custommmyoff+21 + (j * 9), false);
