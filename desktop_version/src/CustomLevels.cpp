@@ -431,25 +431,29 @@ const int* customlevelclass::loadlevel( int rxi, int ryi )
 
 int customlevelclass::getlevelcol(const int tileset, const int tilecol)
 {
-    if(tileset==0)  //Space Station
+    if (tileset == 0)  //Space Station
     {
         return tilecol;
     }
-    else if(tileset==1)   //Outside
+    else if (tileset == 1)   //Outside
     {
-        return 32+tilecol;
+        return 32 + tilecol;
     }
-    else if(tileset==2)   //Lab
+    else if (tileset == 2)   //Lab
     {
-        return 40+tilecol;
+        return 40 + tilecol;
     }
-    else if(tileset==3)   //Warp Zone
+    else if (tileset == 3)   //Warp Zone
     {
-        return 46+tilecol;
+        return 46 + tilecol;
     }
-    else if(tileset==4)   //Ship
+    else if (tileset == 4)   //Ship
     {
-        return 52+tilecol;
+        return 52 + tilecol;
+    }
+    else if (tileset == 5)   //Tower
+    {
+        return 41; // TODO: EXPLODE!
     }
     return 0;
 }
@@ -775,7 +779,7 @@ int customlevelclass::getwarpbackground(int rx, int ry)
         }
         break;
     case 5: //Tower
-        return 6;
+        return graphics.rcol;
         break;
     default:
         return 6;

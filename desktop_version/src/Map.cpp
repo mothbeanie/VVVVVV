@@ -55,8 +55,6 @@ mapclass::mapclass(void)
     customshowmm=true;
     revealmap = true;
 
-    rcol = 0;
-
     //This needs to be in map instead!
     invincibility = false;
 
@@ -90,6 +88,8 @@ mapclass::mapclass(void)
 
     currentregion = 0;
     SDL_zeroa(region);
+
+    animate_tower = false;
 }
 
 static char roomname_static[SCREEN_WIDTH_CHARS];
@@ -617,6 +617,11 @@ void mapclass::updatetowerglow(TowerBG& bg_obj)
     {
         colstatedelay--;
     }
+
+    if (custommode && animate_tower)
+    {
+        graphics.rcol = bg_obj.colstate;
+    }
 }
 
 void mapclass::nexttowercolour(void)
@@ -667,10 +672,21 @@ bool mapclass::collide(int x, int y, const bool invincible)
         if (x == 40) return collide(x - 1, y, invincible);
         if (x < 0 || y < 0 || x >= 40 || y >= 29 + extrarow) return false;
         tile = contents[TILE_IDX(x, y)];
-        if (tile >= 12 && tile <= 27) return true;
-        if (invincible)
+
+        // Solidity processing for all colours
+        int texture_height;
+        graphics.query_texture(graphics.grphx.im_tiles3, NULL, NULL, NULL, &texture_height);
+        for (int y = 0; y < texture_height / 8; y++)
         {
-            if (tile >= 6 && tile <= 11) return true;
+            int offset = 30 * y;
+            if (tile >= (12 + offset) && tile <= (27 + offset))
+            {
+                return true;
+            }
+            else if (invincible && (tile >= (6 + offset) && tile <= (11 + offset)))
+            {
+                return true;
+            }
         }
     }
     else
@@ -1721,17 +1737,17 @@ void mapclass::loadlevel(int rx, int ry)
         if (rx == 108)
         {
             background = 7;
-            rcol = 15;
+            graphics.rcol = 15;
         }
         if (rx == 110)
         {
             background = 8;
-            rcol = 10;
+            graphics.rcol = 10;
         }
         if (rx == 111)
         {
             background = 9;
-            rcol = 0;
+            graphics.rcol = 0;
         }
         break;
     }
@@ -1741,6 +1757,7 @@ void mapclass::loadlevel(int rx, int ry)
         const RoomProperty* const room = cl.getroomprop(rx - 100, ry - 100);
         game.customcol = cl.getlevelcol(room->tileset, room->tilecol) + 1;
         obj.customplatformtile = game.customcol * 12;
+        animate_tower = false;
 
         switch (room->tileset)
         {
@@ -1764,6 +1781,16 @@ void mapclass::loadlevel(int rx, int ry)
         case 4: // Ship
             tileset = 1;
             background = 1;
+            break;
+        case 5: // Tower
+            tileset = 2;
+            background = 10;
+            graphics.rcol = room->tilecol * 5;
+            if (room->tilecol == 6)
+            {
+                animate_tower = true;
+                graphics.rcol = 0;
+            }
             break;
         default:
             tileset = 1;
@@ -1986,7 +2013,7 @@ void mapclass::loadlevel(int rx, int ry)
             {
                 int tile = contents[TILE_IDX(i, j)];
                 //Damage blocks
-                if(tileset==0)
+                if (tileset == 0)
                 {
                     if (tile == 6 || tile == 8)
                     {
@@ -2004,7 +2031,7 @@ void mapclass::loadlevel(int rx, int ry)
                         obj.createblock(2, (i * 8), (j * 8)+3, 8, 2);
                     }
                 }
-                else if(tileset==1)
+                else if (tileset == 1)
                 {
                     if ((tile >= 63 && tile <= 74) ||
                             (tile >= 6 && tile <= 9))
@@ -2029,29 +2056,43 @@ void mapclass::loadlevel(int rx, int ry)
                         obj.createblock(2, (i * 8), (j * 8)+3, 8, 2);
                     }
                 }
-                else if(tileset==2)
+                else if (tileset == 2)
                 {
-                    if (tile == 6 || tile == 8)
+                    int texture_height;
+                    graphics.query_texture(graphics.grphx.im_tiles3, NULL, NULL, NULL, &texture_height);
+                    for (int y = 0; y < texture_height / 8; y++)
                     {
-                        //sticking up
-                        obj.createblock(2, (i * 8), (j * 8)+4, 8, 4);
-                    }
-                    if (tile == 7 || tile == 9)
-                    {
-                        //Sticking down
-                        obj.createblock(2, (i * 8), (j * 8), 8, 4);
+                        int offset = 30 * y;
+                        if (tile == (6 + offset) || tile == (8 + offset))
+                        {
+                            //sticking up
+                            obj.createblock(2, (i * 8), (j * 8) + 4, 8, 4);
+                        }
+                        if (tile == (7 + offset) || tile == (9 + offset))
+                        {
+                            //Sticking down
+                            obj.createblock(2, (i * 8), (j * 8), 8, 4);
+                        }
+                        if (tile == (10 + offset) || tile == (11 + offset))
+                        {
+                            //left or right
+                            obj.createblock(2, (i * 8), (j * 8) + 3, 8, 2);
+                        }
                     }
                 }
-                //Breakable blocks
-                if (tile == 10)
+                if (tileset != 2)
                 {
-                    settile(i, j, 0);
-                    obj.createentity(i * 8, j * 8, 4);
-                }
-                //Directional blocks
-                if (tile >= 14 && tile <= 17)
-                {
-                    obj.createblock(3, i * 8, j * 8, 8, 8, tile-14);
+                    //Breakable blocks
+                    if (tile == 10)
+                    {
+                        settile(i, j, 0);
+                        obj.createentity(i * 8, j * 8, 4);
+                    }
+                    //Directional blocks
+                    if (tile >= 14 && tile <= 17)
+                    {
+                        obj.createblock(3, i * 8, j * 8, 8, 8, tile - 14);
+                    }
                 }
             }
         }

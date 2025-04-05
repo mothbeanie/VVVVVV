@@ -2313,6 +2313,18 @@ void Graphics::drawentity(const int i, const int yoff)
     }
 }
 
+void Graphics::draw_bg_tile(int x, int y, int tile)
+{
+    if (map.tileset == 2)
+    {
+        drawtile3(x, y, tile, 0);
+    }
+    else
+    {
+        drawtile2(x, y, tile);
+    }
+}
+
 void Graphics::drawbackground( int t )
 {
     switch(t)
@@ -2612,6 +2624,22 @@ void Graphics::drawbackground( int t )
             }
         }
         break;
+    case 10:
+    {
+        // Custom level static tower background
+        int x = game.roomx - 100;
+        int y = game.roomy - 100;
+        int index = x + 1 + y;
+        int value = POS_MOD(((index * 400) + 200), 1200);
+        for (int j = 0; j < 30; j++)
+        {
+            for (int i = 0; i < 40; i++)
+            {
+                drawtile3(i * 8, j * 8, map.tower.backat(i, j, value), rcol);
+            }
+        }
+        break;
+    }
     default:
         fill_rect(0, 0, 0);
         break;
@@ -2683,6 +2711,19 @@ void Graphics::updatebackground(int t)
         SDL_Texture* target = SDL_GetRenderTarget(gameScreen.m_renderer);
         set_render_target(backgroundTexture);
 
+        int top_left = temp + 40;
+        int top_right = temp + 41;
+        int bottom_left = temp + 80;
+        int bottom_right = temp + 81;
+
+        if (map.tileset == 2)
+        {
+            top_left = (rcol * 30) + 5;
+            top_right = (rcol * 30) + 4;
+            bottom_left = (rcol * 30) + 2;
+            bottom_right = (rcol * 30) + 3;
+        }
+
         if (backgrounddrawn)
         {
             scroll_texture(backgroundTexture, tempScrollingTexture, -3, 0);
@@ -2690,10 +2731,10 @@ void Graphics::updatebackground(int t)
             {
                 for (int i = 0; i < 2; i++)
                 {
-                    drawtile2(317 - backoffset + (i * 16), (j * 16), temp + 40);  // 20*16 = 320
-                    drawtile2(317 - backoffset + (i * 16) + 8, (j * 16), temp + 41);
-                    drawtile2(317 - backoffset + (i * 16), (j * 16) + 8, temp + 80);
-                    drawtile2(317 - backoffset + (i * 16) + 8, (j * 16) + 8, temp + 81);
+                    draw_bg_tile(317 - backoffset + (i * 16), (j * 16), top_left);  // 20*16 = 320
+                    draw_bg_tile(317 - backoffset + (i * 16) + 8, (j * 16), top_right);
+                    draw_bg_tile(317 - backoffset + (i * 16), (j * 16) + 8, bottom_left);
+                    draw_bg_tile(317 - backoffset + (i * 16) + 8, (j * 16) + 8, bottom_right);
                 }
             }
         }
@@ -2706,10 +2747,10 @@ void Graphics::updatebackground(int t)
             {
                 for (int i = 0; i < 21; i++)
                 {
-                    drawtile2((i * 16) - backoffset - 3, (j * 16), temp + 40);
-                    drawtile2((i * 16) - backoffset + 8 - 3, (j * 16), temp + 41);
-                    drawtile2((i * 16) - backoffset - 3, (j * 16) + 8, temp + 80);
-                    drawtile2((i * 16) - backoffset + 8 - 3, (j * 16) + 8, temp + 81);
+                    draw_bg_tile((i * 16) - backoffset - 3, (j * 16), top_left);
+                    draw_bg_tile((i * 16) - backoffset + 8 - 3, (j * 16), top_right);
+                    draw_bg_tile((i * 16) - backoffset - 3, (j * 16) + 8, bottom_left);
+                    draw_bg_tile((i * 16) - backoffset + 8 - 3, (j * 16) + 8, bottom_right);
                 }
             }
             backgrounddrawn = true;
@@ -2796,16 +2837,31 @@ void Graphics::drawmap(void)
         set_blendmode(foregroundTexture, SDL_BLENDMODE_BLEND);
         clear(0, 0, 0, 0);
 
+        bool in_editor = game.gamestate == EDITORMODE;
+
         for (int y = 0; y < 30; y++)
         {
             for (int x = 0; x < 40; x++)
             {
                 int tile;
                 int tileset;
-                if (game.gamestate == EDITORMODE)
+                if (in_editor)
                 {
                     tile = cl.gettile(ed.levx, ed.levy, x, y);
-                    tileset = (cl.getroomprop(ed.levx, ed.levy)->tileset == 0) ? 0 : 1;
+
+                    EditorTilesets editor_tileset = (EditorTilesets)cl.getroomprop(ed.levx, ed.levy)->tileset;
+                    switch (editor_tileset)
+                    {
+                    case EditorTileset_SPACE_STATION:
+                        tileset = 0;
+                        break;
+                    case EditorTileset_TOWER:
+                        tileset = 2;
+                        break;
+                    default:
+                        tileset = 1;
+                        break;
+                    }
                 }
                 else
                 {
@@ -2825,7 +2881,21 @@ void Graphics::drawmap(void)
                     }
                     else if (tileset == 2)
                     {
-                        drawtile3(x * 8, y * 8, tile, map.rcol);
+                        bool should_animate_tower = true;
+                        if (!in_editor && map.custommode && !map.animate_tower)
+                        {
+                            should_animate_tower = false;
+                        }
+                        else if (in_editor)
+                        {
+                            should_animate_tower = false;
+                            const RoomProperty* room = cl.getroomprop(ed.levx, ed.levy);
+                            if (room->tileset == 5 && room->tilecol == 6)
+                            {
+                                should_animate_tower = true;
+                            }
+                        }
+                        drawtile3(x * 8, y * 8, tile, (should_animate_tower) ? rcol : 0);
                     }
                 }
             }
@@ -3078,7 +3148,25 @@ SDL_Color Graphics::getcol( int t )
         return getRGB(250 - (int) (GETCOL_RANDOM * 32), 250 - (int) (GETCOL_RANDOM * 32), 10);
     case 27: // Particle flashy red
         return getRGB((GETCOL_RANDOM * 64), 10, 10);
-
+    case 28: // Enemy : Dynamic tower
+    {
+        SDL_Color colors[6];
+        colors[0] = getcol(6);
+        colors[1] = getcol(9);
+        colors[2] = getcol(7);
+        colors[3] = getcol(11);
+        colors[4] = getcol(12);
+        colors[5] = getcol(8);
+        int index = POS_MOD(rcol / 5, 6);
+        int index_next = POS_MOD(index + 1, 6);
+        float progress = ((float)rcol / 5.0f) - index;
+        SDL_Color from = colors[index];
+        SDL_Color to = colors[index_next];
+        int r = from.r + (to.r - from.r) * progress;
+        int g = from.g + (to.g - from.g) * progress;
+        int b = from.b + (to.b - from.b) * progress;
+        return getRGB(r, g, b);
+    }
     // Trophies
     // cyan
     case 30:

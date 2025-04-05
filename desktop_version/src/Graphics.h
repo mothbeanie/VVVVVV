@@ -288,6 +288,8 @@ public:
 
     SDL_Color RGBf(int r, int g, int b);
 
+    void draw_bg_tile(int x, int y, int tile);
+
     void drawbackground(int t);
     void updatebackground(int t);
 

@@ -196,6 +196,26 @@ editorclass::editorclass(void)
     outside_vec.assign(outside, outside + SDL_arraysize(outside));
     autotile_types["outside"] = outside_vec;
 
+    static const short tower[] = {
+        26, 22, 26, 22, 25, 22, 25, 22, 26, 22, 26, 22, 25, 22, 25, 22, 17, 20, 17, 20, 17,
+        20, 17, 20, 17, 20, 17, 20, 17, 20, 17, 20, 26, 22, 26, 22, 25, 22, 25, 22, 26, 22,
+        26, 22, 25, 22, 25, 22, 17, 20, 17, 20, 17, 20, 17, 22, 17, 20, 17, 20, 17, 20, 17,
+        20, 27, 24, 27, 24, 18, 23, 23, 23, 27, 24, 27, 24, 18, 23, 18, 23, 19, 21, 19, 21,
+        18, 16, 18, 16, 19, 21, 19, 21, 18, 16, 18, 16, 27, 24, 27, 24, 18, 23, 23, 22, 27,
+        24, 27, 24, 18, 23, 18, 22, 19, 21, 19, 19, 18, 16, 19, 16, 19, 21, 19, 19, 18, 16,
+        18, 16, 26, 24, 26, 24, 25, 22, 25, 22, 26, 24, 26, 22, 25, 22, 25, 22, 17, 20, 17,
+        20, 17, 20, 17, 20, 17, 20, 17, 20, 17, 17, 17, 20, 26, 22, 26, 22, 25, 22, 25, 22,
+        26, 22, 26, 22, 25, 22, 25, 22, 17, 20, 17, 20, 17, 20, 17, 22, 17, 20, 17, 20, 17,
+        17, 17, 20, 27, 24, 27, 24, 18, 23, 18, 23, 27, 24, 27, 24, 18, 24, 18, 23, 19, 21,
+        19, 21, 18, 14, 18, 14, 19, 24, 19, 24, 17, 15, 17, 14, 27, 24, 27, 24, 18, 23, 18,
+        23, 27, 24, 27, 24, 18, 24, 18, 23, 19, 21, 19, 21, 18, 15, 19, 13, 19, 21, 19, 21,
+        18, 15, 18, 12
+    };
+
+    std::vector<int> tower_vec;
+    tower_vec.assign(tower, tower + SDL_arraysize(tower));
+    autotile_types["tower"] = tower_vec;
+
     // Everything gets initialized to 0 by default
     static const short none[256] = {};
 
@@ -213,6 +233,7 @@ editorclass::editorclass(void)
     register_tileset(EditorTileset_LAB, "Lab");
     register_tileset(EditorTileset_WARP_ZONE, "Warp Zone");
     register_tileset(EditorTileset_SHIP, "Ship");
+    register_tileset(EditorTileset_TOWER, "Tower");
 
     register_tilecol(EditorTileset_SPACE_STATION, -1, "basic", 80, "basic", 680);
     register_tilecol(EditorTileset_SPACE_STATION, 0, "basic", 83, "basic", 680);
@@ -281,6 +302,15 @@ editorclass::editorclass(void)
     register_tilecol(EditorTileset_SHIP, 3, "basic", 110, "basic", 750);
     register_tilecol(EditorTileset_SHIP, 4, "basic", 113, "basic", 753);
     register_tilecol(EditorTileset_SHIP, 5, "basic", 116, "basic", 756);
+
+    register_tilecol(EditorTileset_TOWER, 0, "tower", 0, "none", 28);
+    register_tilecol(EditorTileset_TOWER, 1, "tower", 150, "none", 178);
+    register_tilecol(EditorTileset_TOWER, 2, "tower", 300, "none", 328);
+    register_tilecol(EditorTileset_TOWER, 3, "tower", 450, "none", 478);
+    register_tilecol(EditorTileset_TOWER, 4, "tower", 600, "none", 628);
+    register_tilecol(EditorTileset_TOWER, 5, "tower", 750, "none", 778);
+    // colour shifting mode
+    register_tilecol(EditorTileset_TOWER, 6, "tower", 0, "none", 28);
 }
 
 void editorclass::register_tileset(EditorTilesets tileset, const char* name)
@@ -1960,7 +1990,14 @@ void editorrenderfixed(void)
     graphics.updatetitlecolours();
 
     game.customcol = cl.getlevelcol(room->tileset, room->tilecol) + 1;
-    ed.entcol = cl.getenemycol(game.customcol);
+    if (room->tileset == 5)
+    {
+        ed.entcol = 28;
+    }
+    else
+    {
+        ed.entcol = cl.getenemycol(game.customcol);
+    }
 
     ed.entcolreal = graphics.getcol(ed.entcol);
 
@@ -2219,6 +2256,14 @@ void editorlogic(void)
     extern editorclass ed;
 
     //Misc
+    const RoomProperty* room = cl.getroomprop(ed.levx, ed.levy);
+    if (room->tileset == 5 && room->tilecol == 6)
+    {
+        map.updatetowerglow(graphics.towerbg);
+        graphics.foregrounddrawn = false;
+        graphics.backgrounddrawn = false;
+        ed.update_rcol();
+    }
     help.updateglow();
 
     ed.entframedelay--;
@@ -2523,11 +2568,13 @@ void editorclass::tool_place()
         }
         else if (current_tool == EditorTool_WALLS)
         {
-            tile = 1;
+            // Tile 1 is not solid in the tower tileset
+            tile = (cl.getroomprop(levx, levy)->tileset == 5) ? 12 : 1;
         }
         else if (current_tool == EditorTool_BACKING)
         {
-            tile = 2;
+            // Tile 28 is the bg tile in the tower tileset
+            tile = (cl.getroomprop(levx, levy)->tileset == 5) ? 28 : 2;
         }
 
         handle_tile_placement(tile);
@@ -3924,6 +3971,29 @@ int editorclass::autotile(const int x, const int y)
                 return 52 + mult * 2;
             return 63 + mult * 2;
         }
+        else if (cl.getroomprop(levx, levy)->tileset == EditorTileset_TOWER)
+        {
+            // The tower tileset has spikes which merge with the background
+            bool bg_up = (get_tile(x, y - 1) != 0) && (get_tile_type(x, y - 1, false) == TileType_NONSOLID);
+            bool bg_down = (get_tile(x, y + 1) != 0) && (get_tile_type(x, y + 1, false) == TileType_NONSOLID);
+            bool bg_left = (get_tile(x - 1, y) != 0) && (get_tile_type(x - 1, y, false) == TileType_NONSOLID);
+            bool bg_right = (get_tile(x + 1, y) != 0) && (get_tile_type(x + 1, y, false) == TileType_NONSOLID);
+            bool bg = bg_up || bg_down || bg_left || bg_right;
+            
+            // Distance between each main tower color
+            const int color_distance = 150;
+
+            int mult = cl.getroomprop(levx, levy)->tilecol;
+            if (tile_down)
+                return (bg ? 6 : 8) + mult * 150;
+            if (tile_up)
+                return (bg ? 7 : 9) + mult * 150;
+            if (tile_left)
+                return 10 + mult * 150;
+            if (tile_right)
+                return 11 + mult * 150;
+            return 8 + mult * 150;
+        }
 
         // Not in the lab, so use the boring normal spikes
         if (tile_down)
@@ -4091,6 +4161,28 @@ TileTypes editorclass::get_abs_tile_type(int x, int y, const bool wrap)
     const RoomProperty* const room = cl.getroomprop(x / 40, y / 30);
     int tile = cl.getabstile(x, y);
 
+    if (room->tileset == 5)
+    {
+        int texture_height;
+        graphics.query_texture(graphics.grphx.im_tiles3, NULL, NULL, NULL, &texture_height);
+        for (int y = 0; y < texture_height / 8; y++)
+        {
+            int offset = 30 * y;
+            if (tile >= (12 + offset) && tile <= (27 + offset))
+            {
+                // It's solid.
+                return TileType_SOLID;
+            }
+            else if (tile >= (6 + offset) && tile <= (11 + offset))
+            {
+                // It's a spike!
+                return TileType_SPIKE;
+            }
+        }
+
+        return TileType_NONSOLID;
+    }
+
     if (tile == 1 || (tile >= 80 && tile <= 679))
     {
         // It's solid.
@@ -4154,7 +4246,7 @@ bool editorclass::lines_can_pass(int x, int y)
     return false;
 }
 
-void editorclass::make_autotiling_base(void)
+void editorclass::make_autotiling_base(int previous, int current)
 {
     if (cl.getroomprop(levx, levy)->directmode == 1)
     {
@@ -4177,16 +4269,16 @@ void editorclass::make_autotiling_base(void)
         switch (type)
         {
         case TileType_NONSOLID:
-            set_tile(tile_x, tile_y, 2);
+            set_tile(tile_x, tile_y, (current == 5) ? 28 : 2);
             break;
         case TileType_SOLID:
             if (is_warp_zone_background(tile))
             {
-                set_tile(tile_x, tile_y, 2);
+                set_tile(tile_x, tile_y, (current == 5) ? 28 : 2);
             }
             else
             {
-                set_tile(tile_x, tile_y, 1);
+                set_tile(tile_x, tile_y, (current == 5) ? 12 : 1);
             }
             break;
         case TileType_SPIKE:
@@ -4196,23 +4288,40 @@ void editorclass::make_autotiling_base(void)
     }
 }
 
+void editorclass::update_rcol(void)
+{
+    const RoomProperty* room = cl.getroomprop(levx, levy);
+    if (room->tileset == 5)
+    {
+        if (room->tilecol != 6)
+        {
+            graphics.rcol = room->tilecol * 5;
+        }
+        else
+        {
+            graphics.rcol = graphics.towerbg.colstate;
+        }
+    }
+}
+
 void editorclass::switch_tileset(const bool reversed)
 {
-    make_autotiling_base();
-
     int tiles = cl.getroomprop(levx, levy)->tileset;
+    int tiles_new = tiles;
 
     if (reversed)
     {
-        tiles--;
+        tiles_new--;
     }
     else
     {
-        tiles++;
+        tiles_new++;
     }
 
-    tiles = POS_MOD(tiles, NUM_EditorTilesets);
-    cl.setroomtileset(levx, levy, tiles);
+    tiles_new = POS_MOD(tiles_new, NUM_EditorTilesets);
+    make_autotiling_base(tiles, tiles_new);
+
+    cl.setroomtileset(levx, levy, tiles_new);
 
     clamp_tilecol(levx, levy, false);
 
@@ -4221,7 +4330,7 @@ void editorclass::switch_tileset(const bool reversed)
         buffer, sizeof(buffer),
         loc::gettext("Now using {area} Tileset"),
         "area:str",
-        loc::gettext(tileset_names[tiles])
+        loc::gettext(tileset_names[tiles_new])
     );
 
     show_note(buffer);
@@ -4229,11 +4338,15 @@ void editorclass::switch_tileset(const bool reversed)
     updatetiles = true;
 
     graphics.backgrounddrawn = false;
+
+    update_rcol();
 }
 
 void editorclass::switch_tilecol(const bool reversed)
 {
-    make_autotiling_base();
+    int tileset = cl.getroomprop(levx, levy)->tileset;
+    
+    make_autotiling_base(tileset, tileset);
 
     int tilecol = cl.getroomprop(levx, levy)->tilecol;
 
@@ -4255,6 +4368,8 @@ void editorclass::switch_tilecol(const bool reversed)
     updatetiles = true;
 
     graphics.backgrounddrawn = false;
+
+    update_rcol();
 }
 
 void editorclass::clamp_tilecol(const int rx, const int ry, const bool wrap)

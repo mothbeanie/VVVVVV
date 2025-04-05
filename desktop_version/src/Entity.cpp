@@ -2170,8 +2170,14 @@ void entityclass::createentity(int xp, int yp, int t, int meta1, int meta2, int 
           }
         }
 
-        if(custom_gray){
-          entity.colour = 18;
+        if (custom_gray)
+        {
+            entity.colour = 18;
+        }
+
+        if (map.tileset == 2)
+        {
+            entity.colour = 28;
         }
 
         entityclonefix(&entity);

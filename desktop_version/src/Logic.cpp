@@ -178,9 +178,11 @@ void gamelogic(void)
     }
 
     //Misc
-    if (map.towermode)
+    if (map.towermode || map.animate_tower)
     {
         map.updatetowerglow(graphics.towerbg);
+        graphics.foregrounddrawn = false;
+        graphics.backgrounddrawn = false;
     }
     help.updateglow();
 

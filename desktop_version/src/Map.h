@@ -145,7 +145,6 @@ public:
     bool revealmap;
 
     int background;
-    int rcol;
     int tileset;
     bool warpx;
     bool warpy;
@@ -230,6 +229,8 @@ public:
     int regionwidth, regionheight;
 
     MapRenderData get_render_data(void);
+
+    bool animate_tower;
 };
 
 #ifndef MAP_DEFINITION

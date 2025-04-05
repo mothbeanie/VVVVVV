@@ -3283,6 +3283,7 @@ void scriptclass::hardreset(void)
     graphics.textboxes.clear();
     graphics.flipmode = false; //This will be reset if needs be elsewhere
     graphics.showcutscenebars = false;
+    graphics.rcol = 0;
     graphics.setbars(0);
 
     //mapclass
@@ -3299,7 +3300,6 @@ void scriptclass::hardreset(void)
     map.final_mapcol = 0;
     map.final_aniframe = 0;
     map.final_aniframedelay = 0;
-    map.rcol = 0;
     map.custommode=false;
     map.custommodeforreal=false;
     if (!version2_2)
@@ -3318,6 +3318,7 @@ void scriptclass::hardreset(void)
     map.resetmap();
     map.currentregion = 0;
     SDL_zeroa(map.region);
+    map.animate_tower = false;
     //entityclass
     obj.nearelephant = false;
     obj.upsetmode = false;

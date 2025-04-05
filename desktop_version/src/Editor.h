@@ -16,6 +16,7 @@ enum EditorTilesets
     EditorTileset_LAB = 2,
     EditorTileset_WARP_ZONE = 3,
     EditorTileset_SHIP = 4,
+    EditorTileset_TOWER = 5,
 
     NUM_EditorTilesets
 };
@@ -179,9 +180,11 @@ public:
 
     bool lines_can_pass(int x, int y);
 
-    void make_autotiling_base(void);
+    void make_autotiling_base(int previous, int current);
 
     int get_enemy_tile(int t);
+
+    void update_rcol(void);
 
     void switch_tileset(const bool reversed);
     void switch_tilecol(const bool reversed);
